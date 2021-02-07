@@ -85,7 +85,7 @@
             // Mediathek auslesen für Auswahl
             $arrayMediathek = $this->ReadXmlFileMedia($arrayMappedKey[0]['key']);
 
-            // Hier noch einbauen, das Fotos abgefangen werden.
+            // Hier noch einbauen, das Fotos abgefangen werden. 
             foreach($arrayMappedKey as $value) {
               $count_all_sections = 0;
               if($FormattedValueMediathek === $value['title'] && $value['type'] === "show") {

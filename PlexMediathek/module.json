@@ -1,0 +1,15 @@
+{
+  "id": "{41434F5C-B8DD-ECFA-8591-9E2F2C553FC4}",
+  "name": "PlexMediathek",
+  "type": 3,
+  "vendor": "",
+  "aliases":
+  [
+      "Plex Mediathek"
+  ],
+  "url": "https://github.com/Housemann/PlexMediathek",
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "PLEX"
+}

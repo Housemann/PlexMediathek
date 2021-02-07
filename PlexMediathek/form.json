@@ -1,0 +1,27 @@
+{
+  "elements":[
+      { 
+          "type": "ValidationTextBox", 
+          "name": "IPAddress", 
+          "caption": "Plex IP-Adress" 
+      },
+      { 
+          "type": "ValidationTextBox", 
+          "name": "Port", 
+          "caption": "Plex Port"
+      },
+      {
+          "type": "NumberSpinner",
+          "name": "UpdateIntervall",
+          "caption": "UpdateTimer",
+          "suffix": "Minutes"
+      }
+  ],
+  "actions": [
+    {
+        "type": "Button",
+        "caption": "Check URL is Valid",
+        "onClick": "PLEX_URL_Valid($id);"
+     }
+  ]
+}

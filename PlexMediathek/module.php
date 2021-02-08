@@ -52,24 +52,31 @@
             }
         }
 
-
+        // Grundfunktion die Daten zusammenstellt
         public function ReadAndFillHtmlFromPlex (string $Ident) 
         {
-            // Profil assoziationen aktualisieren
-            $this->CreateMediaAssoziations();
+            $ip = $this->ReadPropertyString("IPAddress");
+            $port = $this->ReadPropertyString("Port");
 
-            // Variable ID merken
-            $VariableId = $this->GetIDForIdent($Ident);
+            $rc = $this->CheckIpAdressPortStatus($ip, $port);
+            if($rc['ErrorCode']==0) {
+
+                // Profil assoziationen aktualisieren
+                $this->CreateMediaAssoziations();
+                
+                // VarId zu Ident holen
+                $FormattedValueMediathek = GetValueFormatted($this->GetIDForIdent($Ident));
+
+                // Plex Daten für Mediathek auslesen
+                $ret_array = $this->GetPlexMetaData ($FormattedValueMediathek);
+                
+                // HTML Box füllen
+                $this->FillHtmlBox("MediaHTMLBox", $ret_array);
             
-            // VarId zu Ident holen
-            $FormattedValueMediathek = GetValueFormatted($VariableId);
-
-            // Plex Daten für Mediathek auslesen
-            $ret_array = $this->GetPlexMetaData ($FormattedValueMediathek);
-            
-            // HTML Box füllen
-            $this->FillHtmlBox("MediaHTMLBox", $ret_array);
-
+            } else {
+                return $rc['ErrorCode'];
+                IPS_LogMessage(IPS_GetName($_IPS['SELF'])." (". $_IPS['SELF'].")", "(".$rc['ErrorCode'].")"." ".$rc['ErrorMsg'] );
+            }
         }
 
 
@@ -82,34 +89,64 @@
             // Zum Formatted Ident z.B. BluRay den Plex Mediakey holen weil in Array vom Ident falsch ist
             $arrayMappedKey = $this->ReadMediaAssoziationMappedKey($FormattedValueMediathek); // return array 'key' 'title' 'type'
 
-            // Mediathek auslesen für Auswahl
+            // Mediathek über Plex Mediathek ID auslesen aus Auswahl
             $arrayMediathek = $this->ReadXmlFileMedia($arrayMappedKey[0]['key']);
 
             // Hier noch einbauen, das Fotos abgefangen werden. 
             foreach($arrayMappedKey as $value) {
               $count_all_sections = 0;
               if($FormattedValueMediathek === $value['title'] && $value['type'] === "show") {
-                  $count_all_sections = count($arrayMediathek['Directory']);
-                  $SetValueArray = "Directory";
+                if($arrayMediathek['@attributes']['size']==1) {
+                    $count_all_sections=$arrayMediathek['@attributes']['size'];
+                } else {
+                    $count_all_sections = count($arrayMediathek['Directory']);
+                }
+                $SetValueArray = "Directory";
               } elseif($FormattedValueMediathek === $value['title'] && $value['type'] === "movie") {
-                  $count_all_sections = count($arrayMediathek['Video']);
-                  $SetValueArray = "Video";
+                if($arrayMediathek['@attributes']['size']==1) {
+                    $count_all_sections=$arrayMediathek['@attributes']['size'];
+                } else {
+                    $count_all_sections = count($arrayMediathek['Video']);
+                }  
+                $SetValueArray = "Video";
               } elseif($FormattedValueMediathek === $value['title'] && $value['type'] === "artist") {
-                  $count_all_sections = count($arrayMediathek['Directory']);
-                  $SetValueArray = "Directory";
+                if($arrayMediathek['@attributes']['size']==1) {
+                    $count_all_sections=$arrayMediathek['@attributes']['size'];
+                } else {
+                    $count_all_sections = count($arrayMediathek['Directory']);
+                }                    
+                $SetValueArray = "Directory";
+              } elseif($FormattedValueMediathek === $arrayMediathek['@attributes']['title1'] && $value['type'] === "photo") {
+                if($arrayMediathek['@attributes']['size']==1) {
+                    $count_all_sections=$arrayMediathek['@attributes']['size'];
+                } else {
+                    $count_all_sections = count($arrayMediathek['Directory']);
+                }                    
+                $SetValueArray = "Directory";
               }
 
               // Hier noch einbauen, wenn nur ein Film / Serie vorhanden ist, dass [$i] raus fliegt
               $array=array();
-              for($i = 0; $i < $count_all_sections; $i++) {
-                  $array[] = array (
-                      "thumb"		=>	'http://'.$ip.':'.$port.@$arrayMediathek[$SetValueArray][$i]['@attributes']['thumb'],
-                      "title"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['title'],
-                      "type"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['type'],
-                      "summary"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['summary'],
-                      "addedAt"		=>	date("d.m.Y", @$arrayMediathek[$SetValueArray][$i]['@attributes']['addedAt']),
-                      "year"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['year']
-                  );
+              if($count_all_sections>1) {
+                  for($i = 0; $i < $count_all_sections; $i++) {
+                      $array[] = array (
+                          "thumb"		=>	'http://'.$ip.':'.$port.@$arrayMediathek[$SetValueArray][$i]['@attributes']['thumb'],
+                          "title"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['title'],
+                          "type"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['type'],
+                          "summary"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['summary'],
+                          "addedAt"		=>	date("d.m.Y", @$arrayMediathek[$SetValueArray][$i]['@attributes']['addedAt']),
+                          "year"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['year']
+                      );
+                  }
+              } else {
+                    $array[] = array (
+                        "thumb"		=>	'http://'.$ip.':'.$port.@$arrayMediathek[$SetValueArray]['@attributes']['thumb'],
+                        "title"		=>	 @$arrayMediathek[$SetValueArray]['@attributes']['title'],
+                        "type"		=>	@$arrayMediathek[$SetValueArray]['@attributes']['type'],
+                        "summary"	=>	@$arrayMediathek[$SetValueArray]['@attributes']['summary'],
+                        "addedAt"	=>	date("d.m.Y", @$arrayMediathek[$SetValueArray]['@attributes']['addedAt']),
+                        "year"		=>	@$arrayMediathek[$SetValueArray]['@attributes']['year']
+                    );  
               }
             }
             return $array;
@@ -123,27 +160,31 @@
             $font_size_header 	= "16px";
             $font_size_table 	= "14px";
             $font_size_summary 	= "12px";
+            $border_style       = "outset"; // dotted,dashed,solid,double,groove,ridge,inset,outset,none,hidden
+            $border_width       = "1px";
 
             $s = '';
             $s = $s . "<style type='text/css'>";
             $s = $s . "table.test { width: 100%; border-collapse: true;}";
-            $s = $s . "CSS { border: 1px solid #444455; }</style>";
+            $s = $s . "CSS { border: 1px solid #444455; border-style: $border_style; border-width: $border_width;}</style>";
             $s = $s . "<table class='CSS'>";
 
             $s = $s . "<tr>";
-            $s = $s . "<td style='text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Cover</td>";
+            $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Cover</td>";
 
             if($type === "artist") {
-                $s = $s . "<td style='width: 20%;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Artist</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Artist</td>";
             } elseif($type === "show") {
-                $s = $s . "<td style='width: 20%;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Serie</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Serie</td>";
             } elseif($type === "movie") {
-                $s = $s . "<td style='width: 20%;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Film</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Film</td>";
+            } elseif($type === "photo") {
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Foto</td>";
             }
 
-            $s = $s . "<td style='text-align:center;background: #121212;font-size:$font_size_header;' colspan='2'><B>Jahr</td>";
-            $s = $s . "<td style='background: #121212;font-size:$font_size_header;' colspan='2'><B>Beschreibung</td>";
-            $s = $s . "<td style='text-align:center;background: #121212;font-size:$font_size_header;' colspan='2'><B>Hinzugefügt</td>";
+            $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center;background: #121212;font-size:$font_size_header;' colspan='2'><B>Jahr</td>";
+            $s = $s . "<td style='border-width: $border_width; border-style: $border_style; background: #121212; font-size:$font_size_header;' colspan='2'><B>Beschreibung</td>";
+            $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center;background: #121212;font-size:$font_size_header;' colspan='2'><B>Hinzugefügt</td>";
             $s = $s . "</tr>";
             $s = $s . "<tr>";
 
@@ -153,23 +194,36 @@
                 if(!empty($key['thumb'])) {
                     if($type === "artist") {
                         $pic = "<img src=".$key['thumb']." width=\"150\" height=\"150\" >";
+                    } elseif($type === "photo") {
+                        $pic = "<img src=".$key['thumb']." width=\"150\" height=\"150\" >";
                     } else {
                         $pic = "<img src=".$key['thumb']." width=\"130\" height=\"200\" >";
                     }
                 } else {
                     $pic = "";
                 }
-                $title 		= $key['title'];
-                $summary 	= $key['summary'];
+                $title 	= $key['title'];
+
+                if($key['summary']=="") {
+                    $summary = "Eigenes Fotoalbum";
+                } else {
+                    $summary = $key['summary'];
+                }
+                
                 $addedAt	= $key['addedAt'];
-                $year		= $key['year'];
+                
+                if($key['year']=="") {
+                    $year	= substr($key['addedAt'],-4,4);
+                } else {
+                    $year   = $key['year'];
+                }
 
                 $s = $s . "<tr>";
-                $s = $s . "<td style='text-align:center;font-size:$font_size_table;' colspan='2'>$pic</td>";
-                $s = $s . "<td style='font-size:$font_size_table;' colspan='2'>$title</td>";
-                $s = $s . "<td style='text-align:left;font-size:$font_size_table;' colspan='2'>$year</td>";
-                $s = $s . "<td style='text-align:left;font-size:$font_size_summary;' colspan='2'>$summary</td>";
-                $s = $s . "<td style='text-align:right;font-size:$font_size_table;' colspan='2'>$addedAt</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center;font-size:$font_size_table;' colspan='2'>$pic</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; font-size:$font_size_table;' colspan='2'>$title</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left;font-size:$font_size_table;' colspan='2'>$year</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left;font-size:$font_size_summary;' colspan='2'>$summary</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:right;font-size:$font_size_table;' colspan='2'>$addedAt</td>";
                 $s = $s . "</tr>";
                 $s = $s . "<tr>";
             }
@@ -183,36 +237,30 @@
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
 
-            $rc = $this->CheckIpAdressPortStatus($ip, $port);
-            if($rc['ErrorCode']==0) {
-                $arrayLib = $this->ReadXmlFileLibraries();
+            $arrayLib = $this->ReadXmlFileLibraries();
+            
+            $count_xmlData = count($arrayLib['Directory']);
+
+            // Daten holen für sortierung
+            $arrayMedia=array();
+            for ($i = 0; $i < $count_xmlData; $i++) {
+              $title = $arrayLib['Directory'][$i]['@attributes']['title'];
+              $arrayMedia[]=$title;
+            }
+            asort($arrayMedia);
+            $arrayMedia=array_values($arrayMedia); #Array neu nummerieren
+
+            if(!empty($arrayMedia)) {
+                #Assoziationen immer vorher leeren
+                $GetVarProfile = IPS_GetVariableProfile("PLEX.Mediatheken");
+                foreach($GetVarProfile['Associations'] as $assi ) {
+                  @IPS_SetVariableProfileAssociation ("PLEX.Mediatheken", $assi['Value'], "", "", 0 );
+                }
                 
-                $count_xmlData = count($arrayLib['Directory']);
-
-                // Daten holen für sortierung
-                $arrayMedia=array();
-                for ($i = 0; $i < $count_xmlData; $i++) {
-                  $title = $arrayLib['Directory'][$i]['@attributes']['title'];
-                  $arrayMedia[]=$title;
+                // ProfileAssociations füllen
+                foreach($arrayMedia as $Key => $Value) {
+                    IPS_SetVariableProfileAssociation ("PLEX.Mediatheken", $Key, $Value, "", -1);
                 }
-                asort($arrayMedia);
-                $arrayMedia=array_values($arrayMedia); #Array neu nummerieren
-
-                if(!empty($arrayMedia)) {
-                    #Assoziationen immer vorher leeren
-                    $GetVarProfile = IPS_GetVariableProfile("PLEX.Mediatheken");
-                    foreach($GetVarProfile['Associations'] as $assi ) {
-                      @IPS_SetVariableProfileAssociation ("PLEX.Mediatheken", $assi['Value'], "", "", 0 );
-                    }
-                    
-                    // ProfileAssociations füllen
-                    foreach($arrayMedia as $Key => $Value) {
-                        IPS_SetVariableProfileAssociation ("PLEX.Mediatheken", $Key, $Value, "", -1);
-                    }
-                }
-            } else {
-                return $rc['ErrorCode'];
-                IPS_LogMessage(IPS_GetName($_IPS['SELF'])." (". $_IPS['SELF'].")", "(".$rc['ErrorCode'].")"." ".$rc['ErrorMsg'] );
             }
         }
 
@@ -223,33 +271,27 @@
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
 
-            $rc = $this->CheckIpAdressPortStatus($ip, $port);
-            if($rc['ErrorCode']==0) {
-                $arrayLib = $this->ReadXmlFileLibraries();
+            $arrayLib = $this->ReadXmlFileLibraries();
 
-                $count_xmlData = count($arrayLib['Directory']);
-                $arrayMedia=array();
-                for ($i = 0; $i < $count_xmlData; $i++) {
-                  $arrayMedia[]= array( "key"   => $arrayLib['Directory'][$i]['@attributes']['key'],
-                                        "title" => $arrayLib['Directory'][$i]['@attributes']['title'],
-                                        "type"  => $arrayLib['Directory'][$i]['@attributes']['type']
-                                        );
-                }
+            $count_xmlData = count($arrayLib['Directory']);
+            $arrayMedia=array();
+            for ($i = 0; $i < $count_xmlData; $i++) {
+              $arrayMedia[]= array( "key"   => $arrayLib['Directory'][$i]['@attributes']['key'],
+                                    "title" => $arrayLib['Directory'][$i]['@attributes']['title'],
+                                    "type"  => $arrayLib['Directory'][$i]['@attributes']['type']
+                                    );
+            }
 
-                // Key zu Mediathek mit dem Namen suchen
-                foreach($arrayMedia as $values) {
-                    if($values['title']==$value) {
-                        return $array = array(array("key"    => $values['key'],
-                                                    "title"  => $values['title'],
-                                                    "type"   => $values['type']
-                        ));
-                        break;
-                    }
+            // Key zu Mediathek mit dem Namen suchen
+            foreach($arrayMedia as $values) {
+                if($values['title']==$value) {
+                    return $array = array(array("key"    => $values['key'],
+                                                "title"  => $values['title'],
+                                                "type"   => $values['type']
+                    ));
+                    break;
                 }
-            } else {
-                return $rc['ErrorCode'];
-                IPS_LogMessage(IPS_GetName($_IPS['SELF'])." (". $_IPS['SELF'].")", "(".$rc['ErrorCode'].")"." ".$rc['ErrorMsg'] );
-            }           
+            } 
         }
 
         // Bibliotheken in Plex auslesen

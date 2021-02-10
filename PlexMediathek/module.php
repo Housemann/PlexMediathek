@@ -24,14 +24,40 @@
             $this->RegisterPropertyString ("BorderStyle", "outset");
             $this->RegisterPropertyInteger ("BorderWidth", 1);
             $this->RegisterPropertyInteger ("QuantityPerPage",100);
-            
+
             $this->RegisterProfileInteger("PLEX.Mediatheken", "", "", "", 0, 0, 0);
             $this->Variable_Register("Libraries", "Libraries", "PLEX.Mediatheken", "", 1, true,1 ,true);
-            $this->Variable_Register("MediaHTMLBox", "Mediathek", "~HTMLBox", "", 3, "", 2);
-        
-            $this->RegisterTimer ("UpdateMediathek", 0, 'PLEX_ReadAndFillHtmlFromPlex($_IPS[\'TARGET\'],\'Libraries\');');
+            $this->Variable_Register("MediaHTMLBox", "Mediathek", "~HTMLBox", "", 3, "", 3);
 
+            // Helper Vars Buffer
+            $this->SetBuffer("CurrentSite","");
+            $this->SetBuffer("MaxSite","");
+
+
+            $this->RegisterProfileIntegerEx('PLEX.SiteCount', '', '', '', Array(
+                Array(1 , '  <<  ', '', -1),   			           
+                Array(2 , '  <  ' , '', -1),
+                Array(3 , '  0  ' , '', -1),
+                Array(4 , '  >  ' , '', -1),
+                Array(5 , '  >>  ', '', -1)
+              ));
+            $this->Variable_Register("Site", "Site", "PLEX.SiteCount", "", 1, true, 2, true);
+
+            $this->RegisterTimer ("UpdateMediathek", 0, 'PLEX_ReadAndFillHtmlFromPlex($_IPS[\'TARGET\'],\'Libraries\');');
         }
+
+        public function Destroy() 
+        {
+            // Remove variable profiles from this module if there is no instance left
+            $InstancesAR = IPS_GetInstanceListByModuleID('{41434F5C-B8DD-ECFA-8591-9E2F2C553FC4}');
+            if ((@array_key_exists('0', $InstancesAR) === false) || (@array_key_exists('0', $InstancesAR) === NULL)) {
+                $VarProfileAR = array('PLEX.SiteCount','PLEX.Mediatheken');
+                foreach ($VarProfileAR as $VarProfileName) {
+                    @IPS_DeleteVariableProfile($VarProfileName);
+                }
+            }
+            parent::Destroy();
+        }       
  
         // Überschreibt die intere IPS_ApplyChanges($id) Funktion
         public function ApplyChanges() {
@@ -42,7 +68,10 @@
             $this->SetTimerInterval("UpdateMediathek", $this->ReadPropertyInteger("UpdateIntervall") * 60 * 1000);
 
             // HTML Box neu laden
-            $this->ReadAndFillHtmlFromPlex ("Libraries");
+            $CurSite = $this->SetBuffer("CurrentSite",1);
+            $this->ReadAndFillHtmlFromPlex ("Libraries", 1, true);
+            $MaxSite = $this->GetBuffer("MaxSite");
+            IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$CurSite / $MaxSite", "", -1);
 
         }
  
@@ -51,8 +80,50 @@
         {
             switch($Ident) {
                 case "Libraries":
+                    $CurSite = $this->SetBuffer("CurrentSite",1);
+
                     SetValue($this->GetIDForIdent($Ident), $Value);
-                    $this->ReadAndFillHtmlFromPlex ($Ident);
+                    $this->ReadAndFillHtmlFromPlex ($Ident, $CurSite, true);
+
+                    $MaxSite = $this->GetBuffer("MaxSite");
+                    IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$CurSite / $MaxSite", "", -1);
+
+                break;
+                case "Site":
+                    $CurSite = $this->GetBuffer("CurrentSite");
+                    $MaxSite = $this->GetBuffer("MaxSite");
+
+                    if($Value==1) {
+                        $Site=1;
+                        SetValue($this->GetIDForIdent($Ident),$Value);
+                        $this->SetBuffer("CurrentSite",$Site);
+                        IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
+                        $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
+                    } elseif($Value==2) {
+                        $Site=$CurSite-1;
+                        if($Site<1) {
+                            $Site=1;
+                        }
+                        SetValue($this->GetIDForIdent($Ident),$Value);
+                        $this->SetBuffer("CurrentSite",$Site);
+                        IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
+                        $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
+                    } elseif($Value==4) {
+                        $Site=$CurSite+1;
+                        if($Site>$MaxSite) {
+                            $Site=$MaxSite;
+                        }
+                        SetValue($this->GetIDForIdent($Ident),$Value);
+                        $this->SetBuffer("CurrentSite",$Site);
+                        IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
+                        $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
+                    } elseif($Value==5) {
+                        $Site=$MaxSite;
+                        SetValue($this->GetIDForIdent($Ident),$Value);
+                        $this->SetBuffer("CurrentSite",$Site);
+                        IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
+                        $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
+                    }   
                 break;
                 default:
                 throw new Exception("Invalid Ident");
@@ -60,22 +131,25 @@
         }
 
         // Grundfunktion die Daten zusammenstellt
-        public function ReadAndFillHtmlFromPlex (string $Ident) 
+        public function ReadAndFillHtmlFromPlex (string $Ident, int $SiteNumber, int $CMA) 
         {
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
+            $site = $SiteNumber;
 
             $rc = $this->CheckIpAdressPortStatus($ip, $port);
             if($rc['ErrorCode']==0) {
 
-                // Profil assoziationen aktualisieren
-                $this->CreateMediaAssoziations();
+                // Profil assoziationen NUR aktualisieren wenn Bibliothek gewechselt wird, nicht bei seiten blaettern
+                if($CMA==true) {
+                    $this->CreateMediaAssoziations();
+                }
                 
                 // VarId zu Ident holen
                 $FormattedValueMediathek = GetValueFormatted($this->GetIDForIdent($Ident));
 
                 // Plex Daten für Mediathek auslesen
-                $ret_array = $this->GetPlexMetaData ($FormattedValueMediathek);
+                $ret_array = $this->GetPlexMetaData ($FormattedValueMediathek, $site);
                 
                 // HTML Box füllen
                 $this->FillHtmlBox("MediaHTMLBox", $ret_array);
@@ -88,7 +162,7 @@
 
 
         // Metadaten für Mediathek auslesen und in arra schreiben
-        private function GetPlexMetaData (string $FormattedValueMediathek) 
+        private function GetPlexMetaData (string $FormattedValueMediathek, int $site) 
         {
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
@@ -98,6 +172,17 @@
 
             // Mediathek über Plex Mediathek ID auslesen aus Auswahl
             $arrayMediathek = $this->ReadXmlFileMedia($arrayMappedKey[0]['key']);
+
+            // Anzahl pro Seite holen
+            $MaxCntSite = $this->ReadPropertyInteger("QuantityPerPage");
+
+            // Seitenanzahl errechnen 
+            $MediaCnt = $arrayMediathek['@attributes']['size'];
+            $SiteCnt = intval(ceil($MediaCnt/$MaxCntSite));
+
+            // Buffer setzen mit Anzahl Medien aus dem Array
+            $this->SetBuffer ("MaxSite", $SiteCnt);
+            
 
             // Meidathek durchgehen und Anzahl der Medien zaehlen um Array zu fuellen 
             foreach($arrayMappedKey as $value) {
@@ -132,18 +217,25 @@
                 $SetValueArray = "Directory";
               }
 
+              // buffer auslesen auf welcher Seite man sich befindet
+              $Cursite = $this->GetBuffer("CurrentSite");
+              $ValueFrom = ($Cursite * $MaxCntSite) - $MaxCntSite;
+              $ValueTo   = $ValueFrom + $MaxCntSite - 1;
+
               // Array abhaengig von Anzahl fuellen 
               $array=array();
               if($count_all_sections>1) {
-                  for($i = 0; $i < $count_all_sections; $i++) {
-                      $array[] = array (
-                          "thumb"		=>	'http://'.$ip.':'.$port.@$arrayMediathek[$SetValueArray][$i]['@attributes']['thumb'],
-                          "title"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['title'],
-                          "type"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['type'],
-                          "summary"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['summary'],
-                          "addedAt"		=>	date("d.m.Y", @$arrayMediathek[$SetValueArray][$i]['@attributes']['addedAt']),
-                          "year"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['year']
-                      );
+                  for($i = $ValueFrom; $i < $ValueTo; $i++) {
+                      if(!empty(@$arrayMediathek[$SetValueArray][$i]['@attributes']['title'])) {
+                          $array[] = array (
+                              "thumb"		=>	'http://'.$ip.':'.$port.@$arrayMediathek[$SetValueArray][$i]['@attributes']['thumb'],
+                              "title"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['title'],
+                              "type"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['type'],
+                              "summary"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['summary'],
+                              "addedAt"		=>	date("d.m.Y", @$arrayMediathek[$SetValueArray][$i]['@attributes']['addedAt']),
+                              "year"		=>	@$arrayMediathek[$SetValueArray][$i]['@attributes']['year']
+                          );
+                      }
                   }
               } else {
                     $array[] = array (
@@ -163,7 +255,7 @@
         // HTML Box füllen
         private function FillHtmlBox(string $Ident, $array) {
 
-            $type = $array[0]['type'];
+            $type = @$array[0]['type'];
 
             $color_header       = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("ColorHeader")));
             $font_size_header 	= $this->ReadPropertyInteger ("FontSizeHeader")."px";

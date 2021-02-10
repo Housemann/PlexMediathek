@@ -1,6 +1,7 @@
 <?php
     
     require_once __DIR__ . '/../libs/helper_variables.php';
+    require_once __DIR__ . '/../libs/helper_color.php';
 
     // Klassendefinition
     class PlexMediathek extends IPSModule {
@@ -15,11 +16,18 @@
             $this->RegisterPropertyString ("IPAddress", "2.2.2.2");
             $this->RegisterPropertyString ("Port", "32400");
             $this->RegisterPropertyInteger ("UpdateIntervall", 60);
+
+            $this->RegisterPropertyInteger ("ColorHeader", -1);
+            $this->RegisterPropertyInteger ("FontSizeHeader", 16);
+            $this->RegisterPropertyInteger ("ColorTable", -1);
+            $this->RegisterPropertyInteger ("FontSizeTable", 14);
+            $this->RegisterPropertyString ("BorderStyle", "outset");
+            $this->RegisterPropertyInteger ("BorderWidth", 1);
             
             $this->RegisterProfileInteger("PLEX.Mediatheken", "", "", "", 0, 0, 0);
             $this->Variable_Register("Libraries", "Libraries", "PLEX.Mediatheken", "", 1, true,1 ,true);
             $this->Variable_Register("MediaHTMLBox", "Mediathek", "~HTMLBox", "", 3, "", 2);
-            
+        
             $this->RegisterTimer ("UpdateMediathek", 0, 'PLEX_ReadAndFillHtmlFromPlex($_IPS[\'TARGET\'],\'Libraries\');');
 
         }
@@ -32,13 +40,11 @@
             // Timer zum Mediathek Update
             $this->SetTimerInterval("UpdateMediathek", $this->ReadPropertyInteger("UpdateIntervall") * 60 * 1000);
 
+            // HTML Box neu laden
+            $this->ReadAndFillHtmlFromPlex ("Libraries");
+
         }
  
-
-
-
-
-
 
         public function RequestAction($Ident, $Value) 
         {
@@ -92,7 +98,7 @@
             // Mediathek über Plex Mediathek ID auslesen aus Auswahl
             $arrayMediathek = $this->ReadXmlFileMedia($arrayMappedKey[0]['key']);
 
-            // Hier noch einbauen, das Fotos abgefangen werden. 
+            // Meidathek durchgehen und Anzahl der Medien zaehlen um Array zu fuellen 
             foreach($arrayMappedKey as $value) {
               $count_all_sections = 0;
               if($FormattedValueMediathek === $value['title'] && $value['type'] === "show") {
@@ -125,7 +131,7 @@
                 $SetValueArray = "Directory";
               }
 
-              // Hier noch einbauen, wenn nur ein Film / Serie vorhanden ist, dass [$i] raus fliegt
+              // Array abhaengig von Anzahl fuellen 
               $array=array();
               if($count_all_sections>1) {
                   for($i = 0; $i < $count_all_sections; $i++) {
@@ -155,13 +161,19 @@
 
         // HTML Box füllen
         private function FillHtmlBox(string $Ident, $array) {
+            
             $type = $array[0]['type'];
 
-            $font_size_header 	= "16px";
-            $font_size_table 	= "14px";
-            $font_size_summary 	= "12px";
-            $border_style       = "outset"; // dotted,dashed,solid,double,groove,ridge,inset,outset,none,hidden
-            $border_width       = "1px";
+            $color_header       = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("ColorHeader")));
+            $font_size_header 	= $this->ReadPropertyInteger ("FontSizeHeader")."px";
+
+            $color_table        = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("ColorTable")));
+            $font_size_table 	= $this->ReadPropertyInteger ("FontSizeTable")."px";
+
+            $border_style       = $this->ReadPropertyString ("BorderStyle"); // dotted,dashed,solid,double,groove,ridge,inset,outset,none,hidden
+            $border_width       = $this->ReadPropertyInteger ("BorderWidth")."px";
+            
+
 
             $s = '';
             $s = $s . "<style type='text/css'>";
@@ -170,21 +182,27 @@
             $s = $s . "<table class='CSS'>";
 
             $s = $s . "<tr>";
-            $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Cover</td>";
+            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:cwnter;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Cover</td>";
 
             if($type === "artist") {
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Artist</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Artist</td>";
             } elseif($type === "show") {
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Serie</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Serie</td>";
             } elseif($type === "movie") {
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Film</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Film</td>";
             } elseif($type === "photo") {
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: #121212;font-size:$font_size_header;' colspan='2'><B>Foto</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Fotoalbum</td>";
             }
 
-            $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center;background: #121212;font-size:$font_size_header;' colspan='2'><B>Jahr</td>";
-            $s = $s . "<td style='border-width: $border_width; border-style: $border_style; background: #121212; font-size:$font_size_header;' colspan='2'><B>Beschreibung</td>";
-            $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center;background: #121212;font-size:$font_size_header;' colspan='2'><B>Hinzugefügt</td>";
+            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=150px; colspan='2'><B>Jahr</td>";
+
+            if($type !== "photo") {
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; background: $color_header; font-size:$font_size_header;' colspan='2'><B>Beschreibung</td>";
+
+            }
+
+            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=250px; colspan='2'><B>Hinzugefügt</td>";
+            
             $s = $s . "</tr>";
             $s = $s . "<tr>";
 
@@ -204,8 +222,8 @@
                 }
                 $title 	= $key['title'];
 
-                if($key['summary']=="") {
-                    $summary = "Eigenes Fotoalbum";
+                if($key['summary']=="" && $type === "photo") {
+                    $summary = "";
                 } else {
                     $summary = $key['summary'];
                 }
@@ -219,11 +237,15 @@
                 }
 
                 $s = $s . "<tr>";
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center;font-size:$font_size_table;' colspan='2'>$pic</td>";
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; font-size:$font_size_table;' colspan='2'>$title</td>";
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left;font-size:$font_size_table;' colspan='2'>$year</td>";
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left;font-size:$font_size_summary;' colspan='2'>$summary</td>";
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:right;font-size:$font_size_table;' colspan='2'>$addedAt</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table; font-size:$font_size_table;' colspan='2'>$pic</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; background: $color_table; font-size:$font_size_table;' colspan='2'>$title</td>";
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table;font-size:$font_size_table;' colspan='2'>$year</td>";
+
+                if($type !== "photo") {
+                    $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left; background: $color_table; font-size:$font_size_table;' colspan='2'>$summary</td>";
+                }
+
+                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table; font-size:$font_size_table;' colspan='2'>$addedAt</td>";
                 $s = $s . "</tr>";
                 $s = $s . "<tr>";
             }
@@ -328,4 +350,9 @@
             echo '('.$msg['ErrorCode'].')'.' '.$msg['ErrorMsg']; 
             return $msg;
         }
+
+        private function IntToHex (int $value) {
+            $HEX = sprintf('0x%06X',$value);
+            return $HEX;
+          }
     }

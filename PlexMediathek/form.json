@@ -15,6 +15,51 @@
           "name": "UpdateIntervall",
           "caption": "UpdateTimer",
           "suffix": "Minutes"
+      },
+      {   
+          "type": "SelectColor", 
+          "name": "ColorHeader", 
+          "caption": "Color Header" 
+      },
+      {   
+          "type": "NumberSpinner", 
+          "name": "FontSizeHeader", 
+          "caption": "Font Size Header",
+          "suffix": "Pixel"
+      },
+      {   
+          "type": "SelectColor", 
+          "name": "ColorTable", 
+          "caption": "Color Table" 
+      },
+      {   
+          "type": "NumberSpinner", 
+          "name": "FontSizeTable", 
+          "caption": "Font Size Table",
+          "suffix": "Pixel"
+      },
+      { 
+          "type": "Select",
+          "name": "BorderStyle",
+          "caption": "Border Style",
+          "options": [
+              { "caption": "Outset", "value": "outset" },
+              { "caption": "None", "value": "none" },
+              { "caption": "Hidden", "value": "hidden" },
+              { "caption": "Inset", "value": "inset" },
+              { "caption": "Ridge", "value": "ridge" },
+              { "caption": "Double", "value": "double" },
+              { "caption": "Groove", "value": "groove" },
+              { "caption": "Solid", "value": "solid" },
+              { "caption": "Dashed", "value": "dashed" },
+              { "caption": "Dotted", "value": "dotted" }
+          ]
+      },
+      {   
+          "type": "NumberSpinner", 
+          "name": "BorderWidth", 
+          "caption": "Border Width",
+          "suffix": "Pixel"
       }
   ],
   "actions": [

@@ -23,6 +23,7 @@
             $this->RegisterPropertyInteger ("FontSizeTable", 14);
             $this->RegisterPropertyString ("BorderStyle", "outset");
             $this->RegisterPropertyInteger ("BorderWidth", 1);
+            $this->RegisterPropertyInteger ("QuantityPerPage",100);
             
             $this->RegisterProfileInteger("PLEX.Mediatheken", "", "", "", 0, 0, 0);
             $this->Variable_Register("Libraries", "Libraries", "PLEX.Mediatheken", "", 1, true,1 ,true);
@@ -161,7 +162,7 @@
 
         // HTML Box füllen
         private function FillHtmlBox(string $Ident, $array) {
-            
+
             $type = $array[0]['type'];
 
             $color_header       = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("ColorHeader")));

@@ -1,7 +1,6 @@
 <?php
     
     require_once __DIR__ . '/../libs/helper_variables.php';
-    require_once __DIR__ . '/../libs/helper_color.php';
 
     // Klassendefinition
     class PlexMediathek extends IPSModule {
@@ -13,27 +12,33 @@
             // Diese Zeile nicht löschen.
             parent::Create();
 
+            // Propertys anlegen
             $this->RegisterPropertyString ("IPAddress", "2.2.2.2");
             $this->RegisterPropertyString ("Port", "32400");
-            $this->RegisterPropertyInteger ("UpdateIntervall", 60);
 
+            $this->RegisterPropertyInteger ("UpdateIntervall", 60);
+            
             $this->RegisterPropertyInteger ("ColorHeader", -1);
             $this->RegisterPropertyInteger ("FontSizeHeader", 16);
             $this->RegisterPropertyInteger ("ColorTable", -1);
             $this->RegisterPropertyInteger ("FontSizeTable", 14);
             $this->RegisterPropertyString ("BorderStyle", "outset");
             $this->RegisterPropertyInteger ("BorderWidth", 1);
+            
             $this->RegisterPropertyInteger ("QuantityPerPage",100);
 
+            // Profil Mediatheken anlegen
             $this->RegisterProfileInteger("PLEX.Mediatheken", "", "", "", 0, 0, 0);
+            
+            // Variablen anlegen
             $this->Variable_Register("Libraries", "Libraries", "PLEX.Mediatheken", "", 1, true,1 ,true);
             $this->Variable_Register("MediaHTMLBox", "Mediathek", "~HTMLBox", "", 3, "", 3);
 
-            // Helper Vars Buffer
+            // Helper Buffer
             $this->SetBuffer("CurrentSite","");
             $this->SetBuffer("MaxSite","");
 
-
+            // VariablenProfil und Seitenwechsler anlegen
             $this->RegisterProfileIntegerEx('PLEX.SiteCount', '', '', '', Array(
                 Array(1 , '  <<  ', '', -1),   			           
                 Array(2 , '  <  ' , '', -1),
@@ -43,6 +48,7 @@
               ));
             $this->Variable_Register("Site", "Site", "PLEX.SiteCount", "", 1, true, 2, true);
 
+            // Timer anlegen
             $this->RegisterTimer ("UpdateMediathek", 0, 'PLEX_ReadAndFillHtmlFromPlex($_IPS[\'TARGET\'],\'Libraries\');');
         }
 
@@ -72,61 +78,74 @@
             $this->ReadAndFillHtmlFromPlex ("Libraries", 1, true);
             $MaxSite = $this->GetBuffer("MaxSite");
             IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$CurSite / $MaxSite", "", -1);
-
         }
  
 
         public function RequestAction($Ident, $Value) 
         {
             switch($Ident) {
+                // Wenn Bibliotheken ausgewählt werden
                 case "Libraries":
+                    SetValue($this->GetIDForIdent($Ident), $Value);                   
+                    
                     $CurSite = $this->SetBuffer("CurrentSite",1);
 
-                    SetValue($this->GetIDForIdent($Ident), $Value);
+                    //HTML Box mit Inhalt neu fuellen
                     $this->ReadAndFillHtmlFromPlex ($Ident, $CurSite, true);
 
                     $MaxSite = $this->GetBuffer("MaxSite");
                     IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$CurSite / $MaxSite", "", -1);
 
                 break;
+                // Wenn Seitenwechler gedrückt wird
                 case "Site":
                     $CurSite = $this->GetBuffer("CurrentSite");
                     $MaxSite = $this->GetBuffer("MaxSite");
 
                     if($Value==1) {
-                        $Site=1;
+                        // Aus erste Seite springen
                         SetValue($this->GetIDForIdent($Ident),$Value);
-                        $this->SetBuffer("CurrentSite",$Site);
-                        IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
-                        $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
+                        
+                        $Site=1;
                     } elseif($Value==2) {
+                        // Seite zurück
+                        SetValue($this->GetIDForIdent($Ident),$Value);
+                     
                         $Site=$CurSite-1;
+
+                        // Damit man nicht auf die Seite -1 gelangt
                         if($Site<1) {
                             $Site=1;
                         }
-                        SetValue($this->GetIDForIdent($Ident),$Value);
-                        $this->SetBuffer("CurrentSite",$Site);
-                        IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
-                        $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
                     } elseif($Value==4) {
+                        // Seite vor
+                        SetValue($this->GetIDForIdent($Ident),$Value);
+                        
                         $Site=$CurSite+1;
+
+                        // Damit man nicht auf die Seite groeßer der max Seite gelangt
                         if($Site>$MaxSite) {
                             $Site=$MaxSite;
-                        }
-                        SetValue($this->GetIDForIdent($Ident),$Value);
-                        $this->SetBuffer("CurrentSite",$Site);
-                        IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
-                        $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
+                        } 
                     } elseif($Value==5) {
-                        $Site=$MaxSite;
+                        // Auf letzte Seite springen
                         SetValue($this->GetIDForIdent($Ident),$Value);
-                        $this->SetBuffer("CurrentSite",$Site);
-                        IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
-                        $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
-                    }   
+                        
+                        $Site=$MaxSite;
+                    }
+                    
+                    // Buffer mit aktueller Seite setzen und merken
+                    $this->SetBuffer("CurrentSite",$Site);
+
+                    // Variablenprofil Wert 3 Benennung AktuelleSeite / MaxSeite
+                    IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$Site / $MaxSite", "", -1);
+
+                    //HTML Box mit Inhalt neu fuellen
+                    $this->ReadAndFillHtmlFromPlex ("Libraries", $Site, false);
+                
                 break;
                 default:
-                throw new Exception("Invalid Ident");
+                    throw new Exception("Invalid Ident");
             }
         }
 
@@ -135,7 +154,6 @@
         {
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
-            $site = $SiteNumber;
 
             $rc = $this->CheckIpAdressPortStatus($ip, $port);
             if($rc['ErrorCode']==0) {
@@ -149,7 +167,7 @@
                 $FormattedValueMediathek = GetValueFormatted($this->GetIDForIdent($Ident));
 
                 // Plex Daten für Mediathek auslesen
-                $ret_array = $this->GetPlexMetaData ($FormattedValueMediathek, $site);
+                $ret_array = $this->GetPlexMetaData ($FormattedValueMediathek, $SiteNumber);
                 
                 // HTML Box füllen
                 $this->FillHtmlBox("MediaHTMLBox", $ret_array);
@@ -184,7 +202,7 @@
             $this->SetBuffer ("MaxSite", $SiteCnt);
             
 
-            // Meidathek durchgehen und Anzahl der Medien zaehlen um Array zu fuellen 
+            // Meidathek durchgehen und Anzahl der Medien zaehlen um verschiene Array zu fuellen 
             foreach($arrayMappedKey as $value) {
               $count_all_sections = 0;
               if($FormattedValueMediathek === $value['title'] && $value['type'] === "show") {
@@ -219,10 +237,12 @@
 
               // buffer auslesen auf welcher Seite man sich befindet
               $Cursite = $this->GetBuffer("CurrentSite");
+
+              // Berechnung der Werte die angezeigt werden sollen
               $ValueFrom = ($Cursite * $MaxCntSite) - $MaxCntSite;
               $ValueTo   = $ValueFrom + $MaxCntSite - 1;
 
-              // Array abhaengig von Anzahl fuellen 
+              // Array abhaengig von Anzahl fuellen (weil PLEX [$i] bei einem Wert weg laesst)
               $array=array();
               if($count_all_sections>1) {
                   for($i = $ValueFrom; $i < $ValueTo; $i++) {
@@ -257,6 +277,7 @@
 
             $type = @$array[0]['type'];
 
+            // Propertys lesen und Farbe umwandeln in HEX
             $color_header       = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("ColorHeader")));
             $font_size_header 	= $this->ReadPropertyInteger ("FontSizeHeader")."px";
 
@@ -267,7 +288,7 @@
             $border_width       = $this->ReadPropertyInteger ("BorderWidth")."px";
             
 
-
+            // HTML Tabelle aufbauen
             $s = '';
             $s = $s . "<style type='text/css'>";
             $s = $s . "table.test { width: 100%; border-collapse: true;}";
@@ -289,6 +310,7 @@
 
             $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=150px; colspan='2'><B>Jahr</td>";
 
+            // Wenn Photo Spalte beschreibung weglassen
             if($type !== "photo") {
                 $s = $s . "<th style='border-width: $border_width; border-style: $border_style; background: $color_header; font-size:$font_size_header;' colspan='2'><B>Beschreibung</td>";
 
@@ -300,7 +322,7 @@
             $s = $s . "<tr>";
 
             foreach($array as $key) {
-                $type		= $key['type'];
+                $type = $key['type'];
 
                 if(!empty($key['thumb'])) {
                     if($type === "artist") {
@@ -334,6 +356,7 @@
                 $s = $s . "<td style='border-width: $border_width; border-style: $border_style; background: $color_table; font-size:$font_size_table;' colspan='2'>$title</td>";
                 $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table;font-size:$font_size_table;' colspan='2'>$year</td>";
 
+                // Wenn Photo Spalte beschreibung weglassen
                 if($type !== "photo") {
                     $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left; background: $color_table; font-size:$font_size_table;' colspan='2'>$summary</td>";
                 }
@@ -352,6 +375,7 @@
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
 
+            // Mediatheken auslesen
             $arrayLib = $this->ReadXmlFileLibraries();
             
             $count_xmlData = count($arrayLib['Directory']);
@@ -386,6 +410,7 @@
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
 
+            // Mediatheken auslesen
             $arrayLib = $this->ReadXmlFileLibraries();
 
             $count_xmlData = count($arrayLib['Directory']);

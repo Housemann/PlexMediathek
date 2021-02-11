@@ -25,29 +25,12 @@
             $this->RegisterPropertyString ("BorderStyle", "outset");
             $this->RegisterPropertyInteger ("BorderWidth", 1);
             
-            $this->RegisterPropertyInteger ("QuantityPerPage",100);
-
-            // Profil Mediatheken anlegen
-            $this->RegisterProfileInteger("PLEX.Mediatheken", "", "", "", 0, 0, 0);
-            
-            // Variablen anlegen
-            $this->Variable_Register("Libraries", "Libraries", "PLEX.Mediatheken", "", 1, true,1 ,true);
-            $this->Variable_Register("MediaHTMLBox", "Mediathek", "~HTMLBox", "", 3, "", 3);
+            $this->RegisterPropertyString ("QuantityPerPage","100");
 
             // Helper Buffer
             $this->SetBuffer("CurrentSite","");
             $this->SetBuffer("MaxSite","");
-
-            // VariablenProfil und Seitenwechsler anlegen
-            $this->RegisterProfileIntegerEx('PLEX.SiteCount', '', '', '', Array(
-                Array(1 , '  <<  ', '', -1),   			           
-                Array(2 , '  <  ' , '', -1),
-                Array(3 , '  0  ' , '', -1),
-                Array(4 , '  >  ' , '', -1),
-                Array(5 , '  >>  ', '', -1)
-              ));
-            $this->Variable_Register("Site", "Site", "PLEX.SiteCount", "", 1, true, 2, true);
-
+ 
             // Timer anlegen
             $this->RegisterTimer ("UpdateMediathek", 0, 'PLEX_ReadAndFillHtmlFromPlex($_IPS[\'TARGET\'],\'Libraries\');');
         }
@@ -70,14 +53,34 @@
             // Diese Zeile nicht löschen
             parent::ApplyChanges();
 
+            // Profil Mediatheken anlegen
+            $this->RegisterProfileInteger("PLEX.Mediatheken", "", "", "", 0, 0, 0);
+            
+            // Variablen anlegen
+            $this->Variable_Register("Libraries", $this->translate("Libraries"), "PLEX.Mediatheken", "", 1, true,1 ,true);
+            $this->Variable_Register("MediaHTMLBox", $this->translate("Media"), "~HTMLBox", "", 3, "", 3);
+
+            // VariablenProfil und Seitenwechsler anlegen
+            $this->RegisterProfileIntegerEx('PLEX.SiteCount', '', '', '', Array(
+                Array(1 , '  <<  ', '', -1),   			           
+                Array(2 , '  <  ' , '', -1),
+                Array(3 , '  0  ' , '', -1),
+                Array(4 , '  >  ' , '', -1),
+                Array(5 , '  >>  ', '', -1)
+            ));
+            $this->Variable_Register("Site", $this->translate("Site"), "PLEX.SiteCount", "", 1, true, 2, true);
+
+
             // Timer zum Mediathek Update
             $this->SetTimerInterval("UpdateMediathek", $this->ReadPropertyInteger("UpdateIntervall") * 60 * 1000);
 
             // HTML Box neu laden
-            $CurSite = $this->SetBuffer("CurrentSite",1);
-            $this->ReadAndFillHtmlFromPlex ("Libraries", 1, true);
-            $MaxSite = $this->GetBuffer("MaxSite");
-            IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$CurSite / $MaxSite", "", -1);
+            if(IPS_VariableExists(@$this->GetIDForIdent("Libraries"))) {
+                $CurSite = $this->SetBuffer("CurrentSite",1);
+                $this->ReadAndFillHtmlFromPlex ("Libraries", 1, true);
+                $MaxSite = $this->GetBuffer("MaxSite");
+                IPS_SetVariableProfileAssociation ("PLEX.SiteCount", 3, "$CurSite / $MaxSite", "", -1);
+            }
         }
  
 
@@ -192,11 +195,11 @@
             $arrayMediathek = $this->ReadXmlFileMedia($arrayMappedKey[0]['key']);
 
             // Anzahl pro Seite holen
-            $MaxCntSite = $this->ReadPropertyInteger("QuantityPerPage");
+            $MaxCntSite = $this->ReadPropertyString("QuantityPerPage");
 
             // Seitenanzahl errechnen 
             $MediaCnt = $arrayMediathek['@attributes']['size'];
-            $SiteCnt = intval(ceil($MediaCnt/$MaxCntSite));
+            $SiteCnt = intval(ceil($MediaCnt/intval($MaxCntSite)));
 
             // Buffer setzen mit Anzahl Medien aus dem Array
             $this->SetBuffer ("MaxSite", $SiteCnt);
@@ -239,8 +242,8 @@
               $Cursite = $this->GetBuffer("CurrentSite");
 
               // Berechnung der Werte die angezeigt werden sollen
-              $ValueFrom = ($Cursite * $MaxCntSite) - $MaxCntSite;
-              $ValueTo   = $ValueFrom + $MaxCntSite - 1;
+              $ValueFrom = ($Cursite * intval($MaxCntSite)) - intval($MaxCntSite);
+              $ValueTo   = $ValueFrom + intval($MaxCntSite);
 
               // Array abhaengig von Anzahl fuellen (weil PLEX [$i] bei einem Wert weg laesst)
               $array=array();
@@ -299,24 +302,24 @@
             $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:cwnter;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Cover</td>";
 
             if($type === "artist") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Artist</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Artist")."</td>";
             } elseif($type === "show") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Serie</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Series")."</td>";
             } elseif($type === "movie") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Film</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Movie")."</td>";
             } elseif($type === "photo") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Fotoalbum</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Photoalbum")."</td>";
             }
 
-            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=150px; colspan='2'><B>Jahr</td>";
+            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=150px; colspan='2'><B>".$this->translate("Year")."</td>";
 
             // Wenn Photo Spalte beschreibung weglassen
             if($type !== "photo") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; background: $color_header; font-size:$font_size_header;' colspan='2'><B>Beschreibung</td>";
+                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; background: $color_header; font-size:$font_size_header;' colspan='2'><B>".$this->translate("Summery")."</td>";
 
             }
 
-            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=250px; colspan='2'><B>Hinzugefügt</td>";
+            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=250px; colspan='2'><B>".$this->translate("Added")."</td>";
             
             $s = $s . "</tr>";
             $s = $s . "<tr>";

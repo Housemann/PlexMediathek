@@ -1,0 +1,27 @@
+{
+  "translations": {
+      "de": { 
+          "Plex IP-Adress": "Plex IP-Adresse",
+          "UpdateTimer": "Aktualisierungsintervall",
+          "Color Header": "Hintergrundfarbe Tabellenkopf",
+          "Font Size Header": "Schriftgröße Tabellenkopf",
+          "Color Table": "Hintergrundfarbe Tabelle",
+          "Font Size Table": "Schriftgröße Tabelle",
+          "Border Style": "Rahmentyp",
+          "Border Width": "Rahemstärke",
+          "Quantity per Page": "Anzahl Medien pro Seite",
+
+          "Libraries": "Mediatheken",
+          "Media": "Medien",
+          "Site": "Seite",
+
+          "Movie": "Filme",
+          "Photoalbum": "Fotoalbum",
+          "Series": "Serien",
+          "Artist": "Künstler",
+          "Year": "Jahr",
+          "Summery": "Zusammenfassung",
+          "Added": "Hinzugefügt"
+      }
+  }
+}

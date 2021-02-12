@@ -3,10 +3,13 @@
       "de": { 
           "Plex IP-Adress": "Plex IP-Adresse",
           "UpdateTimer": "Aktualisierungsintervall",
+          "Boarder Color": "Rahmenfarbe",
           "Color Header": "Hintergrundfarbe Tabellenkopf",
           "Font Size Header": "Schriftgröße Tabellenkopf",
+          "Font Color Header": "Schriftfarbe Tabellenkopf",
           "Color Table": "Hintergrundfarbe Tabelle",
           "Font Size Table": "Schriftgröße Tabelle",
+          "Font Color Table": "Schriftfarbe Tabelle",
           "Border Style": "Rahmentyp",
           "Border Width": "Rahemstärke",
           "Quantity per Page": "Anzahl Medien pro Seite",

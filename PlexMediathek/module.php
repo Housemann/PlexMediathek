@@ -19,11 +19,16 @@
             $this->RegisterPropertyInteger ("UpdateIntervall", 60);
             
             $this->RegisterPropertyInteger ("ColorHeader", -1);
+            $this->RegisterPropertyInteger ("FontColorHeader", -1);
             $this->RegisterPropertyInteger ("FontSizeHeader", 16);
             $this->RegisterPropertyInteger ("ColorTable", -1);
             $this->RegisterPropertyInteger ("FontSizeTable", 14);
+            $this->RegisterPropertyInteger ("FontColorTable", -1);
+
+            $this->RegisterPropertyInteger ("BoarderColor", -1);
             $this->RegisterPropertyString ("BorderStyle", "outset");
             $this->RegisterPropertyInteger ("BorderWidth", 1);
+
             
             $this->RegisterPropertyString ("QuantityPerPage","100");
 
@@ -283,13 +288,15 @@
             // Propertys lesen und Farbe umwandeln in HEX
             $color_header       = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("ColorHeader")));
             $font_size_header 	= $this->ReadPropertyInteger ("FontSizeHeader")."px";
+            $font_color_header  = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("FontColorHeader")));
 
             $color_table        = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("ColorTable")));
             $font_size_table 	= $this->ReadPropertyInteger ("FontSizeTable")."px";
+            $font_color_table   = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("FontColorTable")));
 
             $border_style       = $this->ReadPropertyString ("BorderStyle"); // dotted,dashed,solid,double,groove,ridge,inset,outset,none,hidden
             $border_width       = $this->ReadPropertyInteger ("BorderWidth")."px";
-            
+            $boarder_color      = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("BoarderColor")));
 
             // HTML Tabelle aufbauen
             $s = '';
@@ -299,27 +306,27 @@
             $s = $s . "<table class='CSS'>";
 
             $s = $s . "<tr>";
-            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:cwnter;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Cover</td>";
+            $s = $s . "<th style='border-color: $boarder_color; color: $font_color_header; border-width: $border_width; border-style: $border_style; text-align:cwnter;background: $color_header;font-size:$font_size_header;' colspan='2'><B>Cover</td>";
 
             if($type === "artist") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Artist")."</td>";
+                $s = $s . "<th style='border-color: $boarder_color; color: $font_color_header; border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Artist")."</td>";
             } elseif($type === "show") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Series")."</td>";
+                $s = $s . "<th style='border-color: $boarder_color; color: $font_color_header; border-width: $border_width; border-style: $border_style; width: 20px;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Series")."</td>";
             } elseif($type === "movie") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Movie")."</td>";
+                $s = $s . "<th style='border-color: $boarder_color; color: $font_color_header; border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Movie")."</td>";
             } elseif($type === "photo") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Photoalbum")."</td>";
+                $s = $s . "<th style='border-color: $boarder_color; color: $font_color_header; border-width: $border_width; border-style: $border_style; width: 20%;text-align:left;background: $color_header;font-size:$font_size_header;' colspan='2'><B>".$this->translate("Photoalbum")."</td>";
             }
 
-            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=150px; colspan='2'><B>".$this->translate("Year")."</td>";
+            $s = $s . "<th style='border-color: $boarder_color; color: $font_color_header; border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=150px; colspan='2'><B>".$this->translate("Year")."</td>";
 
             // Wenn Photo Spalte beschreibung weglassen
             if($type !== "photo") {
-                $s = $s . "<th style='border-width: $border_width; border-style: $border_style; background: $color_header; font-size:$font_size_header;' colspan='2'><B>".$this->translate("Summery")."</td>";
+                $s = $s . "<th style='border-color: $boarder_color; color: $font_color_header; border-width: $border_width; border-style: $border_style; background: $color_header; font-size:$font_size_header;' colspan='2'><B>".$this->translate("Summery")."</td>";
 
             }
 
-            $s = $s . "<th style='border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=250px; colspan='2'><B>".$this->translate("Added")."</td>";
+            $s = $s . "<th style='border-color: $boarder_color; color: $font_color_header; border-width: $border_width; border-style: $border_style; text-align:center;background: $color_header;font-size:$font_size_header;'width=250px; colspan='2'><B>".$this->translate("Added")."</td>";
             
             $s = $s . "</tr>";
             $s = $s . "<tr>";
@@ -355,16 +362,16 @@
                 }
 
                 $s = $s . "<tr>";
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table; font-size:$font_size_table;' colspan='2'>$pic</td>";
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; background: $color_table; font-size:$font_size_table;' colspan='2'>$title</td>";
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table;font-size:$font_size_table;' colspan='2'>$year</td>";
+                $s = $s . "<td style='border-color: $boarder_color; color: $font_color_table; border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table; font-size:$font_size_table;' colspan='2'>$pic</td>";
+                $s = $s . "<td style='border-color: $boarder_color; color: $font_color_table; border-width: $border_width; border-style: $border_style; background: $color_table; font-size:$font_size_table;' colspan='2'>$title</td>";
+                $s = $s . "<td style='border-color: $boarder_color; color: $font_color_table; border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table;font-size:$font_size_table;' colspan='2'>$year</td>";
 
                 // Wenn Photo Spalte beschreibung weglassen
                 if($type !== "photo") {
-                    $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:left; background: $color_table; font-size:$font_size_table;' colspan='2'>$summary</td>";
+                    $s = $s . "<td style='border-color: $boarder_color; color: $font_color_table; border-width: $border_width; border-style: $border_style; text-align:left; background: $color_table; font-size:$font_size_table;' colspan='2'>$summary</td>";
                 }
 
-                $s = $s . "<td style='border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table; font-size:$font_size_table;' colspan='2'>$addedAt</td>";
+                $s = $s . "<td style='border-color: $boarder_color; color: $font_color_table; border-width: $border_width; border-style: $border_style; text-align:center; background: $color_table; font-size:$font_size_table;' colspan='2'>$addedAt</td>";
                 $s = $s . "</tr>";
                 $s = $s . "<tr>";
             }

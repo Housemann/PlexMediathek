@@ -16,6 +16,9 @@
           "caption": "UpdateTimer",
           "suffix": "Minutes"
       },
+      {
+        "type": "Label"
+      },
       {   
           "type": "SelectColor", 
           "name": "ColorHeader", 
@@ -28,6 +31,14 @@
           "suffix": "Pixel"
       },
       {   
+        "type": "SelectColor", 
+        "name": "FontColorHeader", 
+        "caption": "Font Color Header" 
+      },
+      {
+        "type": "Label"
+      },
+      {   
           "type": "SelectColor", 
           "name": "ColorTable", 
           "caption": "Color Table" 
@@ -38,6 +49,19 @@
           "caption": "Font Size Table",
           "suffix": "Pixel"
       },
+      {   
+        "type": "SelectColor", 
+        "name": "FontColorTable", 
+        "caption": "Font Color Table"
+      },
+      {
+        "type": "Label"
+      },
+      {   
+        "type": "SelectColor", 
+        "name": "BoarderColor", 
+        "caption": "Boarder Color" 
+      },      
       { 
           "type": "Select",
           "name": "BorderStyle",
@@ -60,6 +84,9 @@
           "name": "BorderWidth", 
           "caption": "Border Width",
           "suffix": "Pixel"
+      },
+      {
+        "type": "Label"
       },
       { 
         "type": "Select",

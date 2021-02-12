@@ -37,7 +37,7 @@
             $this->SetBuffer("MaxSite","");
  
             // Timer anlegen
-            $this->RegisterTimer ("UpdateMediathek", 0, 'PLEX_ReadAndFillHtmlFromPlex($_IPS[\'TARGET\'],\'Libraries\');');
+            $this->RegisterTimer ("UpdateMediathek", 0, 'PLEX_ReadAndFillHtmlFromPlex($_IPS[\'TARGET\'],\'Libraries\',1,true);');
         }
 
         public function Destroy() 

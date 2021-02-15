@@ -26,6 +26,33 @@
           "Year": "Jahr",
           "Summery": "Zusammenfassung",
           "Added": "Hinzugefügt"
+      },
+      "de_DE": {
+          "Plex IP-Adress": "Plex IP-Adresse",
+          "UpdateTimer": "Aktualisierungsintervall",
+          "Boarder Color": "Rahmenfarbe",
+          "Color Header": "Hintergrundfarbe Tabellenkopf",
+          "Font Size Header": "Schriftgröße Tabellenkopf",
+          "Font Color Header": "Schriftfarbe Tabellenkopf",
+          "Color Table": "Hintergrundfarbe Tabelle",
+          "Font Size Table": "Schriftgröße Tabelle",
+          "Font Color Table": "Schriftfarbe Tabelle",
+          "Border Style": "Rahmentyp",
+          "Border Width": "Rahemstärke",
+          "Quantity per Page": "Anzahl Medien pro Seite",
+          "Check URL is Valid": "Prüfen ob IP/Port gültig",
+
+          "Libraries": "Mediatheken",
+          "Media": "Medien",
+          "Site": "Seite",
+
+          "Movie": "Filme",
+          "Photoalbum": "Fotoalbum",
+          "Series": "Serien",
+          "Artist": "Künstler",
+          "Year": "Jahr",
+          "Summery": "Zusammenfassung",
+          "Added": "Hinzugefügt"
       }
   }
 }

@@ -18,18 +18,16 @@
 
             $this->RegisterPropertyInteger ("UpdateIntervall", 60);
             
-            $this->RegisterPropertyInteger ("ColorHeader", -1);
+            $this->RegisterPropertyInteger ("ColorHeader", 2368548);
             $this->RegisterPropertyInteger ("FontColorHeader", 16777215);
             $this->RegisterPropertyInteger ("FontSizeHeader", 16);
-            $this->RegisterPropertyInteger ("ColorTable", -1);
+            $this->RegisterPropertyInteger ("ColorTable", 2368548);
             $this->RegisterPropertyInteger ("FontSizeTable", 14);
             $this->RegisterPropertyInteger ("FontColorTable", 16777215);
 
             $this->RegisterPropertyInteger ("BoarderColor", 16777215);
             $this->RegisterPropertyString ("BorderStyle", "outset");
             $this->RegisterPropertyInteger ("BorderWidth", 1);
-
-            #$this->RegisterVariableString("test","test");
 
             $this->RegisterPropertyString ("QuantityPerPage","100");
 
@@ -75,8 +73,6 @@
                 Array(5 , '  >>  ', '', -1)
             ));
             $this->Variable_Register("Site", $this->translate("Site"), "PLEX.SiteCount", "", 1, true, 2, true);
-
-            #$this->SetValue("test",$this->ReadPropertyInteger("ColorHeader"));
 
             // Timer zum Mediathek Update
             $this->SetTimerInterval("UpdateMediathek", $this->ReadPropertyInteger("UpdateIntervall") * 60 * 1000);

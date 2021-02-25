@@ -15,6 +15,7 @@
             // Propertys anlegen
             $this->RegisterPropertyString ("IPAddress", "2.2.2.2");
             $this->RegisterPropertyString ("Port", "32400");
+            $this->RegisterPropertyString ("Token", "");
 
             $this->RegisterPropertyInteger ("UpdateIntervall", 60);
             
@@ -296,6 +297,9 @@
             $border_width       = $this->ReadPropertyInteger ("BorderWidth")."px";
             $boarder_color      = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("BoarderColor")));
 
+            // Token
+            $token = $this->ReadPropertyString("Token");
+
             // HTML Tabelle aufbauen
             $s = '';
             $s = $s . "<style type='text/css'>";
@@ -334,11 +338,11 @@
 
                 if(!empty($key['thumb'])) {
                     if($type === "artist") {
-                        $pic = "<img src=".$key['thumb']." width=\"150\" height=\"150\" >";
+                        $pic = "<img src=".$key['thumb'].'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";
                     } elseif($type === "photo") {
-                        $pic = "<img src=".$key['thumb']." width=\"150\" height=\"150\" >";
+                        $pic = "<img src=".$key['thumb'].'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";
                     } else {
-                        $pic = "<img src=".$key['thumb']." width=\"130\" height=\"200\" >";
+                        $pic = "<img src=".$key['thumb'].'?X-Plex-Token='.$token." width=\"130\" height=\"200\" >";
                     }
                 } else {
                     $pic = "";
@@ -447,8 +451,9 @@
         {
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
-            
-            $Sections = simplexml_load_file('http://'.$ip.':'.$port.'/library/sections'); 
+            $token = $this->ReadPropertyString("Token");
+
+            $Sections = simplexml_load_file('http://'.$ip.':'.$port.'/library/sections?X-Plex-Token='.$token);
             $array_xml_sections = json_decode(json_encode($Sections),true);
 
             return $array_xml_sections;
@@ -459,8 +464,9 @@
         {
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
-            
-            $Sections_all = simplexml_load_file('http://'.$ip.':'.$port.'/library/sections/'.$id.'/all'); 
+            $token = $this->ReadPropertyString("Token");
+
+            $Sections_all = simplexml_load_file('http://'.$ip.':'.$port.'/library/sections/'.$id.'/all?X-Plex-Token='.$token); 
             $array_xml_sections_all = json_decode(json_encode($Sections_all),true);
 
             return $array_xml_sections_all;

@@ -10,6 +10,11 @@
           "name": "Port", 
           "caption": "Plex Port"
       },
+      { 
+        "type": "ValidationTextBox", 
+        "name": "Token", 
+        "caption": "Plex Token"
+      },
       {
           "type": "NumberSpinner",
           "name": "UpdateIntervall",

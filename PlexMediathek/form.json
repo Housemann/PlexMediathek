@@ -18,7 +18,8 @@
       { 
         "type": "ValidationTextBox", 
         "name": "Url", 
-        "caption": "Plex external own Url"
+        "caption": "Plex external URL (https://plex.domain.com)",
+        "width": "400px"
       },      
       {
           "type": "NumberSpinner",

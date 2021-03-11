@@ -14,6 +14,7 @@ Das Plex Mediathek Repository ließt die Plex Mediatheken aus und speichert dies
 * Ermöglicht das Auslesen der eingenen Plex Mediatheken und speichert diese in einer Variable
 * Durch einen Button ist das Vor-und Zurückblättern auf den Seiten mit den Medien möglich.  
 * Die HTML Tabelle kann im Konfigurationsformular nach eigenen bedürnissen angepasst werden.
+* Für die Bilder von extern muss eine eingene URL und ein Token hinterlegt werden.
 
 ### 2. Voraussetzungen
 

@@ -2,7 +2,7 @@
   "translations": {
       "de": { 
           "Plex IP-Adress": "Plex IP-Adresse",
-          "Plex external own Url": "Plex externe eigene Url",
+          "Plex external URL (https://plex.domain.com)": "Plex externe URL (https://plex.domain.com)",
           "UpdateTimer": "Aktualisierungsintervall",
           "Boarder Color": "Rahmenfarbe",
           "Color Header": "Hintergrundfarbe Tabellenkopf",
@@ -30,6 +30,7 @@
       },
       "de_DE": {
           "Plex IP-Adress": "Plex IP-Adresse",
+          "Plex external URL (https://plex.domain.com)": "Plex externe URL (https://plex.domain.com)",
           "UpdateTimer": "Aktualisierungsintervall",
           "Boarder Color": "Rahmenfarbe",
           "Color Header": "Hintergrundfarbe Tabellenkopf",

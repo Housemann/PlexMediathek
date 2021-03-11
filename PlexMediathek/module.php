@@ -16,6 +16,7 @@
             $this->RegisterPropertyString ("IPAddress", "2.2.2.2");
             $this->RegisterPropertyString ("Port", "32400");
             $this->RegisterPropertyString ("Token", "");
+            $this->RegisterPropertyString ("Url", "");
 
             $this->RegisterPropertyInteger ("UpdateIntervall", 60);
             
@@ -297,6 +298,10 @@
             $border_width       = $this->ReadPropertyInteger ("BorderWidth")."px";
             $boarder_color      = str_replace("0x","#",$this->IntToHex($this->ReadPropertyInteger ("BoarderColor")));
 
+            $ip = $this->ReadPropertyString("IPAddress");
+            $port = $this->ReadPropertyString("Port");
+            $url = $this->ReadPropertyString("Url");
+
             // Token
             $token = $this->ReadPropertyString("Token");
 
@@ -338,11 +343,23 @@
 
                 if(!empty($key['thumb'])) {
                     if($type === "artist") {
-                        $pic = "<img src=".$key['thumb'].'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";
+                        if(!empty($token) && !empty($url)) {
+                            $pic = "<img src=".str_replace("https://$ip:$port",$url,$key['thumb']).'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";                            
+                        } else {
+                            $pic = "<img src=".$key['thumb']." width=\"150\" height=\"150\" >";
+                        }
                     } elseif($type === "photo") {
-                        $pic = "<img src=".$key['thumb'].'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";
+                        if(!empty($token) && !empty($url)) {
+                            $pic = "<img src=".str_replace("https://$ip:$port",'plex.vogt.de.com',$key['thumb']).'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";
+                        } else {
+                            $pic = "<img src=".$key['thumb']." width=\"150\" height=\"150\" >";
+                        }
                     } else {
-                        $pic = "<img src=".$key['thumb'].'?X-Plex-Token='.$token." width=\"130\" height=\"200\" >";
+                        if(!empty($token) && !empty($url)) {
+                            $pic = "<img src=".str_replace("https://$ip:$port",'plex.vogt.de.com',$key['thumb']).'?X-Plex-Token='.$token." width=\"130\" height=\"200\" >";
+                        } else {
+                            $pic = "<img src=".$key['thumb']." width=\"130\" height=\"200\" >";
+                        }
                     }
                 } else {
                     $pic = "";
@@ -451,12 +468,25 @@
         {
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
-            $token = $this->ReadPropertyString("Token");
+            $token = $this->ReadPropertyString("Token"); 
 
-            $Sections = simplexml_load_file('http://'.$ip.':'.$port.'/library/sections?X-Plex-Token='.$token);
-            $array_xml_sections = json_decode(json_encode($Sections),true);
+            libxml_use_internal_errors(true);
+            if(!empty($token)) {
+                $Sections = @simplexml_load_file('http://'.$ip.':'.$port.'/library/sections?X-Plex-Token='.$token, 'SimpleXMLElement', LIBXML_NOWARNING);
+            } else {
+                $Sections = @simplexml_load_file('http://'.$ip.':'.$port.'/library/sections', 'SimpleXMLElement', LIBXML_NOWARNING);
+            }
 
-            return $array_xml_sections;
+            if (false === $Sections) {
+                echo "Token invalid, check Plex Settings --> Network --> \"List of IP addresses and networks that do not require authentication\"\nIf they are not Network inside you must have a token \n\n\n\n";
+                foreach(libxml_get_errors() as $error) {
+                    echo "\t", $error->message;
+                    break;
+                }
+            } else {
+                $array_xml_sections = json_decode(json_encode($Sections),true);
+                return $array_xml_sections;
+            }
         }
 
         // Einzelne Bibliothek auslesen
@@ -466,10 +496,23 @@
             $port = $this->ReadPropertyString("Port");
             $token = $this->ReadPropertyString("Token");
 
-            $Sections_all = simplexml_load_file('http://'.$ip.':'.$port.'/library/sections/'.$id.'/all?X-Plex-Token='.$token); 
-            $array_xml_sections_all = json_decode(json_encode($Sections_all),true);
-
-            return $array_xml_sections_all;
+            libxml_use_internal_errors(true);
+            if(!empty($token)) {
+                $Sections_all = @simplexml_load_file('http://'.$ip.':'.$port.'/library/sections/'.$id.'/all?X-Plex-Token='.$token, 'SimpleXMLElement', LIBXML_NOWARNING); 
+            } else {
+                $Sections_all = @simplexml_load_file('http://'.$ip.':'.$port.'/library/sections/'.$id.'/all', 'SimpleXMLElement', LIBXML_NOWARNING); 
+            }
+            
+            if (false === $Sections_all) {
+                echo "Token invalid, check Plex Settings --> Network --> \"List of IP addresses and networks that do not require authentication\"\nIf they are not Network inside you must have a token \n\n\n\n";
+                foreach(libxml_get_errors() as $error) {
+                    echo "\t", $error->message;
+                break;
+                }
+            } else {
+                $array_xml_sections_all = json_decode(json_encode($Sections_all),true);
+                return $array_xml_sections_all;
+            }
         }
 
         // Helper Funktion für Formular prüfung gülte Adresse

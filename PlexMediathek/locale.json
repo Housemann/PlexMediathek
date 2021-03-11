@@ -2,6 +2,7 @@
   "translations": {
       "de": { 
           "Plex IP-Adress": "Plex IP-Adresse",
+          "Plex external own Url": "Plex externe eigene Url",
           "UpdateTimer": "Aktualisierungsintervall",
           "Boarder Color": "Rahmenfarbe",
           "Color Header": "Hintergrundfarbe Tabellenkopf",

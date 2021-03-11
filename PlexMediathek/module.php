@@ -344,19 +344,19 @@
                 if(!empty($key['thumb'])) {
                     if($type === "artist") {
                         if(!empty($token) && !empty($url)) {
-                            $pic = "<img src=".str_replace("https://$ip:$port",$url,$key['thumb']).'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";                            
+                            $pic = "<img src=".str_replace("http://$ip:$port",$url,$key['thumb']).'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";                            
                         } else {
                             $pic = "<img src=".$key['thumb']." width=\"150\" height=\"150\" >";
                         }
                     } elseif($type === "photo") {
                         if(!empty($token) && !empty($url)) {
-                            $pic = "<img src=".str_replace("https://$ip:$port",'plex.vogt.de.com',$key['thumb']).'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";
+                            $pic = "<img src=".str_replace("http://$ip:$port",$url,$key['thumb']).'?X-Plex-Token='.$token." width=\"150\" height=\"150\" >";
                         } else {
                             $pic = "<img src=".$key['thumb']." width=\"150\" height=\"150\" >";
                         }
                     } else {
                         if(!empty($token) && !empty($url)) {
-                            $pic = "<img src=".str_replace("https://$ip:$port",'plex.vogt.de.com',$key['thumb']).'?X-Plex-Token='.$token." width=\"130\" height=\"200\" >";
+                            $pic = "<img src=".str_replace("http://$ip:$port",$url,$key['thumb']).'?X-Plex-Token='.$token." width=\"130\" height=\"200\" >";
                         } else {
                             $pic = "<img src=".$key['thumb']." width=\"130\" height=\"200\" >";
                         }

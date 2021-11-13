@@ -1,6 +1,18 @@
 {
   "elements":[
       { 
+        "type": "Label",
+        "caption": "************** Wichtig ***************"
+      },
+      { 
+        "type": "Label",
+        "caption": "Bei großen Mediatheken muss in der PHP.ini das memory_limit höher gestellt werden"
+      },
+      { 
+        "type": "Label",
+        "caption": "**************************************"
+      },      
+      { 
           "type": "ValidationTextBox", 
           "name": "IPAddress", 
           "caption": "Plex IP-Adress" 

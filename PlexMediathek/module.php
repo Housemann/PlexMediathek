@@ -495,6 +495,7 @@
             $ip = $this->ReadPropertyString("IPAddress");
             $port = $this->ReadPropertyString("Port");
             $token = $this->ReadPropertyString("Token");
+            $this->SendDebug(__FUNCTION__, $id, 0);
 
             libxml_use_internal_errors(true);
             if(!empty($token)) {
@@ -511,6 +512,7 @@
                 }
             } else {
                 $array_xml_sections_all = json_decode(json_encode($Sections_all),true);
+                $this->SendDebug(__FUNCTION__, $array_xml_sections_all, 0);
                 return $array_xml_sections_all;
             }
         }

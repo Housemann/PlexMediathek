@@ -512,7 +512,7 @@
                 }
             } else {
                 $array_xml_sections_all = json_decode(json_encode($Sections_all),true);
-                $this->SendDebug(__FUNCTION__, $array_xml_sections_all, 0);
+                $this->SendDebug(__FUNCTION__, json_encode($array_xml_sections_all), 0);
                 return $array_xml_sections_all;
             }
         }
